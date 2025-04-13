@@ -8,10 +8,11 @@ import (
 )
 
 func home(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Server", "Go")
 	w.Write([]byte("Hello from Snippetbox"))
 }
 
-func getSnippetById(w http.ResponseWriter, r *http.Request) {
+func handleGetSnippetById(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 
 	if err != nil || id < 1 {
@@ -20,16 +21,22 @@ func getSnippetById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msg := fmt.Sprintf("Here you desired snippet with ID %d, brother.", id)
-	w.Write([]byte(msg))
+	fmt.Fprintf(w, "Here you desired snippet with ID %d, brother.", id)
+}
+
+func handlePostSnippets(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte("Save a new snippet..."))
 }
 
 func main() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/{$}", home)
-	mux.HandleFunc("GET /snippets/{id}", getSnippetById)
 
-	log.Print("Starting sever on :4000")
+	mux.HandleFunc("GET /{$}", home)
+
+	mux.HandleFunc("GET /snippets/{id}", handleGetSnippetById)
+	mux.HandleFunc("POST /snippets", handlePostSnippets)
+
 	log.Print("Starting server on :4000")
 
 	err := http.ListenAndServe(":4000", mux)
