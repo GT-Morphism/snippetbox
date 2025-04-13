@@ -30,6 +30,7 @@ func main() {
 	mux.HandleFunc("GET /snippets/{id}", getSnippetById)
 
 	log.Print("Starting sever on :4000")
+	log.Print("Starting server on :4000")
 
 	err := http.ListenAndServe(":4000", mux)
 	log.Fatal(err)
