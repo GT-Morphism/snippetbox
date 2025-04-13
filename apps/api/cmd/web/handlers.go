@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -27,18 +26,4 @@ func handleGetSnippetById(w http.ResponseWriter, r *http.Request) {
 func handlePostSnippets(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("Save a new snippet..."))
-}
-
-func main() {
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("GET /{$}", home)
-
-	mux.HandleFunc("GET /snippets/{id}", handleGetSnippetById)
-	mux.HandleFunc("POST /snippets", handlePostSnippets)
-
-	log.Print("Starting server on :4000")
-
-	err := http.ListenAndServe(":4000", mux)
-	log.Fatal(err)
 }
