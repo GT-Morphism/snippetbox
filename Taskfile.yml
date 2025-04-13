@@ -1,0 +1,22 @@
+# https://taskfile.dev
+
+version: "3"
+
+output: prefixed
+
+vars:
+  APPS_DIR: apps
+
+tasks:
+  dev:
+    deps: [dev:api, dev:web]
+
+  dev:api:
+    desc: "Runs Go backend with live reload using air"
+    dir: "{{.APPS_DIR}}/api"
+    cmd: air .
+
+  dev:web:
+    desc: "Runs dev server for SvelteKit frontend"
+    dir: "{{.APPS_DIR}}/web"
+    cmd: pnpm dev
