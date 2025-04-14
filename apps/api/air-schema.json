@@ -1,0 +1,305 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Air Configuration Schema",
+  "description": "Schema for Air configuration files (https://github.com/air-verse/air)",
+  "type": "object",
+  "properties": {
+    "root": {
+      "type": "string",
+      "description": "Working directory (. or absolute path). Directories following must be under root.",
+      "default": "."
+    },
+    "tmp_dir": {
+      "type": "string",
+      "description": "Temporary directory for builds",
+      "default": "tmp"
+    },
+    "build": {
+      "type": "object",
+      "description": "Build configuration settings",
+      "properties": {
+        "pre_cmd": {
+          "type": "array",
+          "description": "Array of commands to run before each build",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["echo 'hello air' > pre_cmd.txt"]]
+        },
+        "cmd": {
+          "type": "string",
+          "description": "Shell command to build the application",
+          "default": "go build -o ./tmp/main ."
+        },
+        "post_cmd": {
+          "type": "array",
+          "description": "Array of commands to run after ^C",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["echo 'hello air' > post_cmd.txt"]]
+        },
+        "bin": {
+          "type": "string",
+          "description": "Binary file yielded from cmd",
+          "default": "tmp/main"
+        },
+        "full_bin": {
+          "type": "string",
+          "description": "Customize binary, can setup environment variables when running your app",
+          "examples": ["APP_ENV=dev APP_USER=air ./tmp/main"]
+        },
+        "args_bin": {
+          "type": "array",
+          "description": "Additional arguments when running binary",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["hello", "world"]]
+        },
+        "include_ext": {
+          "type": "array",
+          "description": "Watch these filename extensions",
+          "items": {
+            "type": "string"
+          },
+          "default": ["go", "tpl", "tmpl", "html"]
+        },
+        "exclude_dir": {
+          "type": "array",
+          "description": "Ignore these filename extensions or directories",
+          "items": {
+            "type": "string"
+          },
+          "default": ["assets", "tmp", "vendor", "frontend/node_modules"]
+        },
+        "include_dir": {
+          "type": "array",
+          "description": "Watch these directories if specified",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "include_file": {
+          "type": "array",
+          "description": "Watch these specific files",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "exclude_file": {
+          "type": "array",
+          "description": "Exclude these specific files",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "exclude_regex": {
+          "type": "array",
+          "description": "Exclude specific regular expressions",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["_test\\.go"]]
+        },
+        "exclude_unchanged": {
+          "type": "boolean",
+          "description": "Exclude unchanged files",
+          "default": true
+        },
+        "follow_symlink": {
+          "type": "boolean",
+          "description": "Follow symlink for directories",
+          "default": true
+        },
+        "log": {
+          "type": "string",
+          "description": "Log file placed in your tmp_dir",
+          "default": "air.log"
+        },
+        "poll": {
+          "type": "boolean",
+          "description": "Poll files for changes instead of using fsnotify",
+          "default": false
+        },
+        "poll_interval": {
+          "type": "integer",
+          "description": "Poll interval in milliseconds (minimum 500ms)",
+          "default": 500,
+          "minimum": 500
+        },
+        "delay": {
+          "type": "integer",
+          "description": "Delay in milliseconds before triggering build after file changes",
+          "default": 0,
+          "minimum": 0
+        },
+        "stop_on_error": {
+          "type": "boolean",
+          "description": "Stop running old binary when build errors occur",
+          "default": true
+        },
+        "send_interrupt": {
+          "type": "boolean",
+          "description": "Send Interrupt signal before killing process (Windows does not support this)",
+          "default": false
+        },
+        "kill_delay": {
+          "type": "integer",
+          "description": "Delay in nanoseconds after sending Interrupt signal",
+          "default": 500,
+          "minimum": 0
+        },
+        "rerun": {
+          "type": "boolean",
+          "description": "Rerun binary or not",
+          "default": false
+        },
+        "rerun_delay": {
+          "type": "integer",
+          "description": "Delay in milliseconds after each execution",
+          "default": 500,
+          "minimum": 0
+        }
+      }
+    },
+    "log": {
+      "type": "object",
+      "description": "Logging configuration",
+      "properties": {
+        "time": {
+          "type": "boolean",
+          "description": "Show log time",
+          "default": false
+        },
+        "main_only": {
+          "type": "boolean",
+          "description": "Only show main log (silences watcher, build, runner)",
+          "default": false
+        },
+        "silent": {
+          "type": "boolean",
+          "description": "Silence all logs produced by air",
+          "default": false
+        }
+      }
+    },
+    "color": {
+      "type": "object",
+      "description": "Color configuration for different parts of the output",
+      "properties": {
+        "main": {
+          "type": "string",
+          "description": "Color for main log messages",
+          "default": "magenta",
+          "enum": [
+            "black",
+            "red",
+            "green",
+            "yellow",
+            "blue",
+            "magenta",
+            "cyan",
+            "white"
+          ]
+        },
+        "watcher": {
+          "type": "string",
+          "description": "Color for watcher log messages",
+          "default": "cyan",
+          "enum": [
+            "black",
+            "red",
+            "green",
+            "yellow",
+            "blue",
+            "magenta",
+            "cyan",
+            "white"
+          ]
+        },
+        "build": {
+          "type": "string",
+          "description": "Color for build log messages",
+          "default": "yellow",
+          "enum": [
+            "black",
+            "red",
+            "green",
+            "yellow",
+            "blue",
+            "magenta",
+            "cyan",
+            "white"
+          ]
+        },
+        "runner": {
+          "type": "string",
+          "description": "Color for runner log messages",
+          "default": "green",
+          "enum": [
+            "black",
+            "red",
+            "green",
+            "yellow",
+            "blue",
+            "magenta",
+            "cyan",
+            "white"
+          ]
+        }
+      }
+    },
+    "misc": {
+      "type": "object",
+      "description": "Miscellaneous configuration",
+      "properties": {
+        "clean_on_exit": {
+          "type": "boolean",
+          "description": "Delete tmp directory on exit",
+          "default": true
+        }
+      }
+    },
+    "screen": {
+      "type": "object",
+      "description": "Screen behavior configuration",
+      "properties": {
+        "clear_on_rebuild": {
+          "type": "boolean",
+          "description": "Clear the screen on rebuilds",
+          "default": true
+        },
+        "keep_scroll": {
+          "type": "boolean",
+          "description": "Keep scroll position after screen clear",
+          "default": true
+        }
+      }
+    },
+    "proxy": {
+      "type": "object",
+      "description": "Proxy configuration for live-reloading",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable live-reloading on the browser",
+          "default": true
+        },
+        "proxy_port": {
+          "type": "integer",
+          "description": "Port for the proxy server",
+          "default": 8090
+        },
+        "app_port": {
+          "type": "integer",
+          "description": "Port for your application",
+          "default": 8080
+        }
+      }
+    }
+  }
+}

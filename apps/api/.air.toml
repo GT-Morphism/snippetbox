@@ -1,0 +1,14 @@
+#:schema ./air-schema.json
+
+root = "."
+tmp_dir = "tmp"
+
+[build]
+bin = "./tmp/main"
+cmd = "go build -o ./tmp/main ."
+delay = 1000
+exclude_dir = ["dir"]
+full_bin = ""
+include_dir = []
+include_ext = ["go"]
+include_file = []
