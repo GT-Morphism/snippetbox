@@ -5,10 +5,10 @@ tmp_dir = "tmp"
 
 [build]
 bin = "./tmp/main"
-cmd = "go build -o ./tmp/main ."
+cmd = "go build -o ./tmp/main ./cmd/web"
 delay = 1000
-exclude_dir = ["dir"]
+exclude_dir = ["tmp"]
 full_bin = ""
-include_dir = []
+include_dir = ["cmd", "internal"]
 include_ext = ["go"]
 include_file = []
