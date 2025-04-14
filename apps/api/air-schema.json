@@ -1,201 +1,252 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Air Configuration Schema",
-  "description": "Schema for Air configuration files (https://github.com/air-verse/air)",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Air Configuration",
+  "description": "Schema for Air (https://github.com/air-verse/air) - a live reload tool for Go applications",
   "type": "object",
   "properties": {
     "root": {
       "type": "string",
-      "description": "Working directory (. or absolute path). Directories following must be under root.",
-      "default": "."
+      "description": "Working directory, either '.' or an absolute path. All other directories must be under this root.",
+      "default": ".",
+      "examples": [".", "/path/to/your/project"]
+    },
+    "testdata_dir": {
+      "type": "string",
+      "description": "Directory containing test data that should be excluded from watching.",
+      "default": "testdata",
+      "examples": ["testdata", "test/fixtures"]
     },
     "tmp_dir": {
       "type": "string",
-      "description": "Temporary directory for builds",
-      "default": "tmp"
+      "description": "Temporary directory used by Air for build artifacts and logs.",
+      "default": "tmp",
+      "examples": ["tmp", ".air_build"]
     },
     "build": {
       "type": "object",
-      "description": "Build configuration settings",
+      "description": "Configuration settings for building and running your application",
       "properties": {
         "pre_cmd": {
           "type": "array",
-          "description": "Array of commands to run before each build",
-          "items": {
-            "type": "string"
-          },
-          "examples": [["echo 'hello air' > pre_cmd.txt"]]
+          "items": { "type": "string" },
+          "description": "Commands to run before each build. Useful for setup tasks.",
+          "default": [],
+          "examples": [
+            ["echo 'Starting build process' > pre_cmd.txt"],
+            ["go generate", "go fmt ./..."]
+          ]
         },
         "cmd": {
           "type": "string",
-          "description": "Shell command to build the application",
-          "default": "go build -o ./tmp/main ."
+          "description": "Build command to compile your application. Can be any shell command.",
+          "default": "go build -o ./tmp/main .",
+          "examples": [
+            "go build -o ./tmp/main .",
+            "go build -race -o ./tmp/app cmd/main.go"
+          ]
         },
         "post_cmd": {
           "type": "array",
-          "description": "Array of commands to run after ^C",
-          "items": {
-            "type": "string"
-          },
-          "examples": [["echo 'hello air' > post_cmd.txt"]]
+          "items": { "type": "string" },
+          "description": "Commands to run after stopping the application (after pressing ^C).",
+          "default": [],
+          "examples": [
+            ["echo 'Cleanup after build' > post_cmd.txt"],
+            ["go test ./...", "go vet"]
+          ]
         },
         "bin": {
           "type": "string",
-          "description": "Binary file yielded from cmd",
-          "default": "tmp/main"
+          "description": "Path to the binary file produced by the build command.",
+          "default": "./tmp/main",
+          "examples": ["./tmp/main", "build/app"]
         },
         "full_bin": {
           "type": "string",
-          "description": "Customize binary, can setup environment variables when running your app",
-          "examples": ["APP_ENV=dev APP_USER=air ./tmp/main"]
+          "description": "Customized binary execution command with environment variables. Allows configuring the runtime environment.",
+          "default": "",
+          "examples": [
+            "APP_ENV=dev APP_USER=air ./tmp/main",
+            "PORT=3000 DEBUG=true ./tmp/main"
+          ]
         },
         "args_bin": {
           "type": "array",
-          "description": "Additional arguments when running binary",
-          "items": {
-            "type": "string"
-          },
-          "examples": [["hello", "world"]]
+          "items": { "type": "string" },
+          "description": "Additional command-line arguments to pass when running the binary.",
+          "default": [],
+          "examples": [
+            ["hello", "world"],
+            ["--config=config.yaml", "--verbose"]
+          ]
         },
         "include_ext": {
           "type": "array",
-          "description": "Watch these filename extensions",
-          "items": {
-            "type": "string"
-          },
-          "default": ["go", "tpl", "tmpl", "html"]
+          "items": { "type": "string" },
+          "description": "File extensions to watch for changes. Only files with these extensions will trigger rebuilds.",
+          "default": ["go", "tpl", "tmpl", "html"],
+          "examples": [
+            ["go", "tpl", "tmpl", "html"],
+            ["go", "proto", "yaml", "sql"]
+          ]
         },
         "exclude_dir": {
           "type": "array",
-          "description": "Ignore these filename extensions or directories",
-          "items": {
-            "type": "string"
-          },
-          "default": ["assets", "tmp", "vendor", "frontend/node_modules"]
+          "items": { "type": "string" },
+          "description": "Directories to exclude from watching. Changes in these directories won't trigger rebuilds.",
+          "default": ["assets", "tmp", "vendor", "testdata"],
+          "examples": [
+            ["assets", "tmp", "vendor", "testdata"],
+            [".git", "build", "docs", "node_modules"]
+          ]
         },
         "include_dir": {
           "type": "array",
-          "description": "Watch these directories if specified",
-          "items": {
-            "type": "string"
-          },
-          "default": []
+          "items": { "type": "string" },
+          "description": "Specific directories to watch. If specified, only these directories will be watched.",
+          "default": [],
+          "examples": [
+            ["cmd", "internal", "pkg"],
+            ["src", "config"]
+          ]
         },
         "include_file": {
           "type": "array",
-          "description": "Watch these specific files",
-          "items": {
-            "type": "string"
-          },
-          "default": []
+          "items": { "type": "string" },
+          "description": "Specific files to watch. If specified, only these files will be watched.",
+          "default": [],
+          "examples": [
+            ["main.go", "go.mod", "config.yaml"],
+            ["app.go", "Makefile"]
+          ]
         },
         "exclude_file": {
           "type": "array",
-          "description": "Exclude these specific files",
-          "items": {
-            "type": "string"
-          },
-          "default": []
+          "items": { "type": "string" },
+          "description": "Specific files to exclude from watching. Changes to these files won't trigger rebuilds.",
+          "default": [],
+          "examples": [
+            ["main_test.go", "README.md"],
+            ["LICENSE", "CONTRIBUTING.md"]
+          ]
         },
         "exclude_regex": {
           "type": "array",
-          "description": "Exclude specific regular expressions",
-          "items": {
-            "type": "string"
-          },
-          "examples": [["_test\\.go"]]
+          "items": { "type": "string" },
+          "description": "Regular expressions matching files to exclude from watching.",
+          "default": ["_test.go"],
+          "examples": [["_test\\.go"], ["\\._.*", "generated.*\\.go"]]
         },
         "exclude_unchanged": {
           "type": "boolean",
-          "description": "Exclude unchanged files",
-          "default": true
+          "description": "Exclude unchanged files from triggering rebuilds. When true, only files with actual content changes will cause rebuilds.",
+          "default": false
         },
         "follow_symlink": {
           "type": "boolean",
-          "description": "Follow symlink for directories",
-          "default": true
+          "description": "Follow symbolic links in watched directories. When true, directories pointed to by symlinks will also be watched.",
+          "default": false
         },
         "log": {
           "type": "string",
-          "description": "Log file placed in your tmp_dir",
-          "default": "air.log"
+          "description": "Log file path, relative to tmp_dir. Records build errors.",
+          "default": "build-errors.log",
+          "examples": ["build-errors.log", "build/errors.log"]
         },
         "poll": {
           "type": "boolean",
-          "description": "Poll files for changes instead of using fsnotify",
+          "description": "Use polling to detect file changes instead of fsnotify. Useful on systems where fsnotify doesn't work properly.",
           "default": false
         },
         "poll_interval": {
           "type": "integer",
-          "description": "Poll interval in milliseconds (minimum 500ms)",
-          "default": 500,
-          "minimum": 500
+          "description": "Interval in milliseconds for polling file changes when poll is enabled.",
+          "default": 0,
+          "examples": [500, 1000, 2000]
         },
         "delay": {
           "type": "integer",
-          "description": "Delay in milliseconds before triggering build after file changes",
-          "default": 0,
-          "minimum": 0
+          "description": "Delay in milliseconds before triggering a rebuild after file changes. Useful to avoid excessive rebuilds during rapid changes.",
+          "default": 1000,
+          "examples": [1000, 500, 2000]
         },
         "stop_on_error": {
           "type": "boolean",
-          "description": "Stop running old binary when build errors occur",
-          "default": true
+          "description": "Stop running the old binary when build errors occur. When false, the previous version continues running despite build failures.",
+          "default": false
         },
         "send_interrupt": {
           "type": "boolean",
-          "description": "Send Interrupt signal before killing process (Windows does not support this)",
+          "description": "Send an interrupt signal (SIGINT) before killing the process. Gives the application a chance to clean up. Not supported on Windows.",
           "default": false
         },
         "kill_delay": {
-          "type": "integer",
-          "description": "Delay in nanoseconds after sending Interrupt signal",
-          "default": 500,
-          "minimum": 0
+          "type": "string",
+          "description": "Delay after sending an interrupt signal before forcefully killing the process.",
+          "default": "0s",
+          "examples": ["0s", "500ms", "1s"]
         },
         "rerun": {
           "type": "boolean",
-          "description": "Rerun binary or not",
+          "description": "Rerun the binary automatically after it stops. When true, the application will restart if it terminates for any reason.",
           "default": false
         },
         "rerun_delay": {
           "type": "integer",
-          "description": "Delay in milliseconds after each execution",
+          "description": "Delay in milliseconds before rerunning the binary after it stops.",
           "default": 500,
-          "minimum": 0
+          "examples": [500, 1000, 3000]
         }
-      }
+      },
+      "required": ["cmd", "bin"]
     },
     "log": {
       "type": "object",
-      "description": "Logging configuration",
+      "description": "Configuration for Air's logging behavior",
       "properties": {
         "time": {
           "type": "boolean",
-          "description": "Show log time",
+          "description": "Show timestamps in log output. Useful for tracking when events occurred.",
           "default": false
         },
         "main_only": {
           "type": "boolean",
-          "description": "Only show main log (silences watcher, build, runner)",
+          "description": "Show only main logs, silencing watcher, build, and runner logs. Reduces log verbosity.",
           "default": false
         },
         "silent": {
           "type": "boolean",
-          "description": "Silence all logs produced by air",
+          "description": "Silence all logs produced by Air. Use when you only care about your application's output.",
           "default": false
         }
       }
     },
     "color": {
       "type": "object",
-      "description": "Color configuration for different parts of the output",
+      "description": "Configure colors for different log components for better visual distinction",
       "properties": {
+        "app": {
+          "type": "string",
+          "description": "Color for application logs.",
+          "default": "",
+          "enum": [
+            "",
+            "black",
+            "red",
+            "green",
+            "yellow",
+            "blue",
+            "magenta",
+            "cyan",
+            "white"
+          ]
+        },
         "main": {
           "type": "string",
-          "description": "Color for main log messages",
+          "description": "Color for main logs.",
           "default": "magenta",
           "enum": [
+            "",
             "black",
             "red",
             "green",
@@ -208,9 +259,10 @@
         },
         "watcher": {
           "type": "string",
-          "description": "Color for watcher log messages",
+          "description": "Color for file watcher logs.",
           "default": "cyan",
           "enum": [
+            "",
             "black",
             "red",
             "green",
@@ -223,9 +275,10 @@
         },
         "build": {
           "type": "string",
-          "description": "Color for build log messages",
+          "description": "Color for build process logs.",
           "default": "yellow",
           "enum": [
+            "",
             "black",
             "red",
             "green",
@@ -238,9 +291,10 @@
         },
         "runner": {
           "type": "string",
-          "description": "Color for runner log messages",
+          "description": "Color for application runner logs.",
           "default": "green",
           "enum": [
+            "",
             "black",
             "red",
             "green",
@@ -255,51 +309,58 @@
     },
     "misc": {
       "type": "object",
-      "description": "Miscellaneous configuration",
+      "description": "Miscellaneous configuration options",
       "properties": {
         "clean_on_exit": {
           "type": "boolean",
-          "description": "Delete tmp directory on exit",
-          "default": true
-        }
-      }
-    },
-    "screen": {
-      "type": "object",
-      "description": "Screen behavior configuration",
-      "properties": {
-        "clear_on_rebuild": {
-          "type": "boolean",
-          "description": "Clear the screen on rebuilds",
-          "default": true
-        },
-        "keep_scroll": {
-          "type": "boolean",
-          "description": "Keep scroll position after screen clear",
-          "default": true
+          "description": "Delete the temporary directory on exit. When true, cleans up build artifacts when Air stops.",
+          "default": false
         }
       }
     },
     "proxy": {
       "type": "object",
-      "description": "Proxy configuration for live-reloading",
+      "description": "Configuration for the live-reload proxy server",
       "properties": {
         "enabled": {
           "type": "boolean",
-          "description": "Enable live-reloading on the browser",
-          "default": true
+          "description": "Enable live-reloading on the browser. When true, the browser refreshes automatically on rebuilds.",
+          "default": false
         },
         "proxy_port": {
           "type": "integer",
-          "description": "Port for the proxy server",
-          "default": 8090
+          "description": "Port number for the proxy server. This is the port you connect to in your browser.",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 65535,
+          "examples": [8090, 3000, 8080]
         },
         "app_port": {
           "type": "integer",
-          "description": "Port for your application",
-          "default": 8080
+          "description": "Port number for the application server. This is the port your Go application listens on.",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 65535,
+          "examples": [8080, 3001, 9000]
+        }
+      }
+    },
+    "screen": {
+      "type": "object",
+      "description": "Configuration for terminal screen behavior",
+      "properties": {
+        "clear_on_rebuild": {
+          "type": "boolean",
+          "description": "Clear the terminal screen on each rebuild. Provides a clean view for each run.",
+          "default": false
+        },
+        "keep_scroll": {
+          "type": "boolean",
+          "description": "Keep scrollback history after clearing the screen. When true, you can still scroll up to see previous output.",
+          "default": true
         }
       }
     }
-  }
+  },
+  "required": ["root", "tmp_dir", "build"]
 }
