@@ -6,6 +6,9 @@ output: prefixed
 
 vars:
   APPS_DIR: apps
+  SECRETS_DIR: secrets
+  ENCRYPTED_SECRETS_FILE: db.secrets.enc.yaml
+  DECRYPTED_SECRETS_FILE: "{{.SECRETS_DIR}}/db.secrets.yaml"
 
 tasks:
   dev:
@@ -20,3 +23,47 @@ tasks:
     desc: "Runs dev server for SvelteKit frontend"
     dir: "{{.APPS_DIR}}/web"
     cmd: pnpm dev
+
+  enc:encrypt-secrets:
+    desc: Encrypts secrets
+    dir: "{{.APPS_DIR}}/api"
+    cmds:
+      - rm -f {{.ENCRYPTED_SECRETS_FILE}}
+      - sops --encrypt --output={{.ENCRYPTED_SECRETS_FILE}} {{.DECRYPTED_SECRETS_FILE}}
+    preconditions:
+      - test -f {{.DECRYPTED_SECRETS_FILE}}
+
+  enc:decrypt-secrets:
+    desc: Decrypts secrets
+    dir: "{{.APPS_DIR}}/api"
+    cmds:
+      - sops --decrypt {{.ENCRYPTED_SECRETS_FILE}} > {{.DECRYPTED_SECRETS_FILE}}
+    preconditions:
+      - test -f {{.ENCRYPTED_SECRETS_FILE}}
+      - msg: No encrypted file present to decrpyt; try running `enc:encrypt-secrets` first.
+
+  enc:prepare-secrets:
+    desc: Decrypts secrets file, creates txt files and removes decrypted secrets
+    dir: "{{.APPS_DIR}}/api"
+    cmds:
+      - mkdir -p {{.SECRETS_DIR}}
+      - task: enc:decrypt-secrets
+      - task: enc:create-secret-files
+      - rm -f {{.DECRYPTED_SECRETS_FILE}}
+
+  enc:create-secret-files:
+    internal: true
+    dir: "{{.APPS_DIR}}/api"
+    cmds:
+      - grep "POSTGRES_USER" {{.DECRYPTED_SECRETS_FILE}} | cut -d":" -f2 | tr -d "[:space:]" > {{.SECRETS_DIR}}/db_user.txt
+      - grep "POSTGRES_DB" {{.DECRYPTED_SECRETS_FILE}} | cut -d":" -f2 | tr -d "[:space:]" > {{.SECRETS_DIR}}/db_name.txt
+      - grep "POSTGRES_PASSWORD" {{.DECRYPTED_SECRETS_FILE}} | cut -d":" -f2 | tr -d "[:space:]" > {{.SECRETS_DIR}}/db_password.txt
+      - grep "APP_USER" {{.DECRYPTED_SECRETS_FILE}} | cut -d":" -f2 | tr -d "[:space:]" > {{.SECRETS_DIR}}/app_user.txt
+      - grep "APP_PASSWORD" {{.DECRYPTED_SECRETS_FILE}} | cut -d":" -f2 | tr -d "[:space:]" > {{.SECRETS_DIR}}/app_password.txt
+
+  db:start:
+    desc: Starts postgres with secrets
+    dir: "{{.APPS_DIR}}/api"
+    deps: [enc:prepare-secrets]
+    cmds:
+      - docker compose up -d db
