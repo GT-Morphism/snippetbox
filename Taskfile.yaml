@@ -37,6 +37,8 @@ tasks:
     desc: Decrypts secrets
     dir: "{{.APPS_DIR}}/api"
     cmds:
+      - rm -rf {{.SECRETS_DIR}}
+      - mkdir -p {{.SECRETS_DIR}}
       - sops --decrypt {{.ENCRYPTED_SECRETS_FILE}} > {{.DECRYPTED_SECRETS_FILE}}
     preconditions:
       - test -f {{.ENCRYPTED_SECRETS_FILE}}
@@ -46,7 +48,6 @@ tasks:
     desc: Decrypts secrets file, creates txt files and removes decrypted secrets
     dir: "{{.APPS_DIR}}/api"
     cmds:
-      - mkdir -p {{.SECRETS_DIR}}
       - task: sops:decrypt
       - task: db:create-secret-files
       - rm -f {{.DECRYPTED_SECRETS_FILE}}
