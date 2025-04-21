@@ -2,93 +2,34 @@
 
 version: "3"
 
+includes:
+  api:
+    taskfile: ./apps/api/Taskfile.yaml
+    dir: ./apps/api
+  web:
+    taskfile: ./apps/web/Taskfile.yaml
+    dir: ./apps/web
+
 output: prefixed
 
 vars:
-  APPS_DIR: apps
-  SECRETS_DIR: secrets
-  ENCRYPTED_SECRETS_FILE: db.secrets.enc.yaml
-  DECRYPTED_SECRETS_FILE: "{{.SECRETS_DIR}}/db.secrets.yaml"
+  # same name as container name of service `db` in `compose.yaml`
+  DB_CONTAINER_NAME: postgres
 
 tasks:
+  default:
+    cmd: "task --list-all"
+
+  dev:server:
+    desc: "Starts all servers for local development"
+    deps: [api:dev, web:dev]
+
   dev:
-    deps: [dev:api, dev:web]
-
-  dev:api:
-    desc: "Runs Go backend with live reload using air"
-    dir: "{{.APPS_DIR}}/api"
-    cmd: air .
-
-  dev:web:
-    desc: "Runs dev server for SvelteKit frontend"
-    dir: "{{.APPS_DIR}}/web"
-    cmd: pnpm dev
-
-  sops:encrypt:
-    desc: Encrypts secrets
-    dir: "{{.APPS_DIR}}/api"
+    desc: "Starts all services for local development"
     cmds:
-      - rm -f {{.ENCRYPTED_SECRETS_FILE}}
-      - sops --encrypt --output={{.ENCRYPTED_SECRETS_FILE}} {{.DECRYPTED_SECRETS_FILE}}
-    preconditions:
-      - test -f {{.DECRYPTED_SECRETS_FILE}}
-
-  sops:decrypt:
-    desc: Decrypts secrets
-    dir: "{{.APPS_DIR}}/api"
-    cmds:
-      - rm -rf {{.SECRETS_DIR}}
-      - mkdir -p {{.SECRETS_DIR}}
-      - sops --decrypt {{.ENCRYPTED_SECRETS_FILE}} > {{.DECRYPTED_SECRETS_FILE}}
-    preconditions:
-      - test -f {{.ENCRYPTED_SECRETS_FILE}}
-      - msg: No encrypted file present to decrpyt; try running `sops:encrypt` first.
-
-  sops:create-secret-file:
-    internal: true
-    dir: "{{.APPS_DIR}}/api"
-    cmds:
-      - grep "{{.SECRET_VAR_NAME}}" {{.DECRYPTED_SECRETS_FILE}} | cut -d":" -f2 | tr -d "[:space:]" > {{.SECRETS_DIR}}/{{.SECRET_FILE}}
-
-  db:prepare-secrets:
-    desc: Decrypts secrets file, creates txt files and removes decrypted secrets
-    dir: "{{.APPS_DIR}}/api"
-    cmds:
-      - task: sops:decrypt
-      - task: db:create-secret-files
-      - defer: rm -f {{.DECRYPTED_SECRETS_FILE}}
-
-  db:create-secret-files:
-    internal: true
-    dir: "{{.APPS_DIR}}/api"
-    deps:
-      - task: sops:create-secret-file
-        vars: { SECRET_VAR_NAME: "POSTGRES_USER", SECRET_FILE: "db_user.txt" }
-      - task: sops:create-secret-file
-        vars: { SECRET_VAR_NAME: "POSTGRES_DB", SECRET_FILE: "db_name.txt" }
-      - task: sops:create-secret-file
-        vars:
-          {
-            SECRET_VAR_NAME: "POSTGRES_PASSWORD",
-            SECRET_FILE: "db_password.txt",
-          }
-      - task: sops:create-secret-file
-        vars: { SECRET_VAR_NAME: "APP_USER", SECRET_FILE: "app_user.txt" }
-      - task: sops:create-secret-file
-        vars:
-          { SECRET_VAR_NAME: "APP_PASSWORD", SECRET_FILE: "app_password.txt" }
-
-  db:start:
-    desc: Starts postgres with secrets
-    dir: "{{.APPS_DIR}}/api"
-    deps: [db:prepare-secrets]
-    cmds:
-      - docker compose up -d db
-
-  db:clean:
-    desc: Stops and removes postgres container; cleans unused volumes
-    cmds:
-      - "docker container stop postgres | xargs docker container rm"
-      - "docker volume prune -f"
-    preconditions:
-      - "docker logs postgres || exit 1"
+      - task: api:db:start
+      - |
+        echo "Waiting for database to be ready..."
+        # inspired by https://stackoverflow.com/questions/46516584/docker-check-if-postgres-is-ready
+        until docker exec {{.DB_CONTAINER_NAME}} pg_isready -t 90; do echo "Database not ready yet, waiting..."; sleep 2; done
+      - task: dev:server

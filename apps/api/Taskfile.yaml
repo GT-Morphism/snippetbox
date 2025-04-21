@@ -1,0 +1,86 @@
+# https://taskfile.dev
+
+version: "3"
+
+output: prefixed
+
+vars:
+  SECRETS_DIR: secrets
+  ENCRYPTED_SECRETS_FILE: db.secrets.enc.yaml
+  DECRYPTED_SECRETS_FILE: "./{{.SECRETS_DIR}}/db.secrets.yaml"
+
+tasks:
+  dev:
+    desc: "Runs Go backend with live reload using air"
+    deps: [db:start]
+    cmd: air .
+
+  sops:encrypt:
+    desc: Encrypts secrets
+    cmds:
+      - rm -f {{.ENCRYPTED_SECRETS_FILE}}
+      - sops --encrypt --output={{.ENCRYPTED_SECRETS_FILE}} {{.DECRYPTED_SECRETS_FILE}}
+    preconditions:
+      - test -f {{.DECRYPTED_SECRETS_FILE}}
+
+  sops:decrypt:
+    desc: Decrypts secrets
+    cmds:
+      - mkdir -p {{.SECRETS_DIR}}
+      - sops --decrypt {{.ENCRYPTED_SECRETS_FILE}} > {{.DECRYPTED_SECRETS_FILE}}
+    preconditions:
+      - test -f {{.ENCRYPTED_SECRETS_FILE}}
+      - msg: No encrypted file present to decrpyt; try running `sops:encrypt` first.
+
+  sops:create-secret-file:
+    internal: true
+    # follow: https://github.com/go-task/task/issues/2181 (`generates` not checking if
+    # file deleted, thus associated task doesn't re-run after file deletion)
+    # sources:
+    #   - "./{{.ENCRYPTED_SECRETS_FILE}}"
+    # generates:
+    #   - "./{{.SECRETS_DIR}}/**"
+    cmds:
+      - grep "{{.SECRET_VAR_NAME}}" {{.DECRYPTED_SECRETS_FILE}} | cut -d":" -f2 | tr -d "[:space:]" > {{.SECRETS_DIR}}/{{.SECRET_FILE}}
+
+  db:prepare-secrets:
+    desc: Prepares secrets to be used by the running db container
+    cmds:
+      - task: sops:decrypt
+      - task: db:create-secret-files
+      - defer: rm -f {{.DECRYPTED_SECRETS_FILE}}
+    status:
+      - ! test -d {{.SECRETS_DIR}}
+
+  db:create-secret-files:
+    internal: true
+    deps:
+      - task: sops:create-secret-file
+        vars: { SECRET_VAR_NAME: "POSTGRES_USER", SECRET_FILE: "db_user.txt" }
+      - task: sops:create-secret-file
+        vars: { SECRET_VAR_NAME: "POSTGRES_DB", SECRET_FILE: "db_name.txt" }
+      - task: sops:create-secret-file
+        vars:
+          {
+            SECRET_VAR_NAME: "POSTGRES_PASSWORD",
+            SECRET_FILE: "db_password.txt",
+          }
+      - task: sops:create-secret-file
+        vars: { SECRET_VAR_NAME: "APP_USER", SECRET_FILE: "app_user.txt" }
+      - task: sops:create-secret-file
+        vars:
+          { SECRET_VAR_NAME: "APP_PASSWORD", SECRET_FILE: "app_password.txt" }
+
+  db:start:
+    desc: Starts postgres with secrets
+    deps: [db:prepare-secrets]
+    cmds:
+      - docker compose up -d db
+
+  db:clean:
+    desc: Stops and removes postgres container; cleans unused volumes
+    cmds:
+      - "docker container stop {{.DB_CONTAINER_NAME}} | xargs docker container rm"
+      - "docker volume prune -f"
+    preconditions:
+      - "docker logs {{.DB_CONTAINER_NAME}} || exit 1"
