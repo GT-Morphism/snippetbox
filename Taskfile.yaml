@@ -85,3 +85,10 @@ tasks:
     cmds:
       - docker compose up -d db
 
+  db:clean:
+    desc: Stops and removes postgres container; cleans unused volumes
+    cmds:
+      - "docker container stop postgres | xargs docker container rm"
+      - "docker volume prune -f"
+    preconditions:
+      - "docker logs postgres || exit 1"
