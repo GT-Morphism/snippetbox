@@ -56,7 +56,7 @@ tasks:
     cmds:
       - task: sops:decrypt
       - task: db:create-secret-files
-      - rm -f {{.DECRYPTED_SECRETS_FILE}}
+      - defer: rm -f {{.DECRYPTED_SECRETS_FILE}}
 
   db:create-secret-files:
     internal: true
