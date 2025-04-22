@@ -25,6 +25,15 @@ func (app *application) handleGetSnippetById(w http.ResponseWriter, r *http.Requ
 }
 
 func (app *application) handlePostSnippets(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Save a new snippet..."))
+	title := "O snail"
+	content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n– Kobayashi Issa"
+	expires_at := 7
+
+	id, err := app.snippets.Insert(title, content, expires_at)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/snippets/%d", id), http.StatusSeeOther)
 }
