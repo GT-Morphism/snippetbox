@@ -77,6 +77,13 @@ tasks:
     cmds:
       - docker compose up -d db
 
+  db:logs:
+    desc: Shows logs of running postgres container
+    cmds:
+      - docker logs {{.DB_CONTAINER_NAME}} -f
+    preconditions:
+      - "docker logs {{.DB_CONTAINER_NAME}} || exit 1"
+
   db:clean:
     desc: Stops and removes postgres container; cleans unused volumes
     cmds:

@@ -20,9 +20,9 @@ tasks:
   default:
     cmd: "task --list-all"
 
-  dev:server:
-    desc: "Starts all servers for local development"
-    deps: [api:dev, web:dev]
+  dev:services:
+    internal: true
+    deps: [api:dev, api:db:logs, web:dev]
 
   dev:
     desc: "Starts all services for local development"
@@ -32,4 +32,4 @@ tasks:
         echo "Waiting for database to be ready..."
         # inspired by https://stackoverflow.com/questions/46516584/docker-check-if-postgres-is-ready
         until docker exec {{.DB_CONTAINER_NAME}} pg_isready -t 90; do echo "Database not ready yet, waiting..."; sleep 2; done
-      - task: dev:server
+      - task: dev:services
