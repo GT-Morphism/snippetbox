@@ -11,10 +11,12 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"snippetbox.gentiluomo.dev/internal/models"
 )
 
 type application struct {
-	logger *slog.Logger
+	logger   *slog.Logger
+	snippets *models.SnippetModel
 }
 
 func main() {
@@ -22,12 +24,6 @@ func main() {
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-
-	app := &application{
-		logger: logger,
-	}
-
-	logger.Info("starting server", "addr", *addr)
 
 	connStr, _ := GetPostgresConnectionString("./secrets")
 
@@ -38,7 +34,10 @@ func main() {
 	}
 	defer dbPool.Close()
 
-	logger.Info("connection pool established")
+	app := &application{
+		logger:   logger,
+		snippets: &models.SnippetModel{DB: dbPool},
+	}
 
 	var greeting string
 	err = dbPool.QueryRow(context.Background(), "SELECT 'Hello, Sir.'").Scan(&greeting)
@@ -46,6 +45,9 @@ func main() {
 		logger.Error("QueryRow failed", "err", err)
 		os.Exit(1)
 	}
+
+	logger.Info("connection pool established")
+	logger.Info("starting server", "addr", *addr)
 
 	fmt.Println(greeting)
 
