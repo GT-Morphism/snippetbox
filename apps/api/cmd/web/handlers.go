@@ -1,9 +1,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
+
+	"snippetbox.gentiluomo.dev/internal/models"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
@@ -21,7 +24,17 @@ func (app *application) handleGetSnippetById(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	fmt.Fprintf(w, "Here you desired snippet with ID %d, brother.", id)
+	snippet, err := app.snippets.Get(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			http.NotFound(w, r)
+		} else {
+			app.serverError(w, r, err)
+		}
+		return
+	}
+
+	fmt.Fprintf(w, "Here you desired snippet with ID %d, brother: %+v", id, snippet)
 }
 
 func (app *application) handlePostSnippets(w http.ResponseWriter, r *http.Request) {
