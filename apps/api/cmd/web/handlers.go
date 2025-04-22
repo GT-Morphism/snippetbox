@@ -14,6 +14,18 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hello from Snippetbox"))
 }
 
+func (app *application) handleGetSnippets(w http.ResponseWriter, r *http.Request) {
+	snippets, err := app.snippets.Latest()
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	for _, snippet := range snippets {
+		fmt.Fprintf(w, "%+v\n", snippet)
+	}
+}
+
 func (app *application) handleGetSnippetById(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 
