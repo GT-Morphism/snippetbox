@@ -1,23 +1,23 @@
 import type { PageServerLoad } from "./$types";
 import { error } from "@sveltejs/kit";
-
-interface Snippet {
-	id: number;
-	title: string;
-	created_at: string;
-	expires_at: string;
-}
+import client from "$lib/api";
 
 export const load: PageServerLoad = async ({ fetch }) => {
-	const response = await fetch("http://localhost:4000/snippets");
+	const { response, data } = await client.GET("/snippets", {
+		fetch,
+	});
 
 	if (!response.ok) {
 		error(response.status, response.statusText);
 	}
 
-	const snippets = (await response.json()) as Snippet[];
+	if (!data) {
+		return {
+			snippets: [],
+		};
+	}
 
 	return {
-		snippets,
+		snippets: data,
 	};
 };

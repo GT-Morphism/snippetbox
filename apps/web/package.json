@@ -12,8 +12,12 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
+		"gen:spec": "pnpm dlx openapi-typescript http://localhost:4000/openapi.yaml -o ./src/lib/api/schema.d.ts",
 		"up:deps": "pnpm update -i --latest",
 		"preinstall": "npx only-allow pnpm"
+	},
+	"dependencies": {
+		"openapi-fetch": "^0.13.5"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
@@ -26,6 +30,7 @@
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^3.0.0",
 		"globals": "^16.0.0",
+		"openapi-typescript": "^7.6.1",
 		"prettier": "^3.4.2",
 		"prettier-plugin-svelte": "^3.3.3",
 		"prettier-plugin-tailwindcss": "^0.6.11",
