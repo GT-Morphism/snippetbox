@@ -5,6 +5,22 @@
 </script>
 
 <h1>LIST OF ALL SNIPPETS</h1>
-<p>
-	{data.text}
-</p>
+
+<div class="grid gap-y-2">
+	{#each data.snippets as snippet (snippet.id)}
+		<article class="bg-blue-300">
+			<header>
+				<h2>{snippet.title}</h2>
+			</header>
+
+			<footer class="grid">
+				<a href={`/snippets/${snippet.id}`}>To the snippet</a>
+				<aside>
+					<span>{snippet.id}</span>
+					<time>{snippet.created_at}</time>
+					<time>{snippet.expires_at}</time>
+				</aside>
+			</footer>
+		</article>
+	{/each}
+</div>

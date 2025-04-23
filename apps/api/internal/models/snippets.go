@@ -10,11 +10,11 @@ import (
 )
 
 type Snippet struct {
-	ID         int
-	Title      string
-	Content    string
-	Created_at time.Time
-	Expires_at time.Time
+	ID         int       `json:"id"`
+	Title      string    `json:"title"`
+	Content    string    `json:"content,omitzero"`
+	Created_at time.Time `json:"created_at"`
+	Expires_at time.Time `json:"expires_at"`
 }
 
 type SnippetModel struct {
@@ -59,7 +59,7 @@ func (m *SnippetModel) Get(id int) (Snippet, error) {
 
 func (m *SnippetModel) Latest() ([]Snippet, error) {
 	query := `
-		SELECT id, title, content, created_at, expires_at FROM snippets
+		SELECT id, title, created_at, expires_at FROM snippets
 		WHERE expires_at > CURRENT_TIMESTAMP
 		ORDER BY id DESC LIMIT 10
 	`
@@ -76,7 +76,7 @@ func (m *SnippetModel) Latest() ([]Snippet, error) {
 	for rows.Next() {
 		var s Snippet
 
-		err = rows.Scan(&s.ID, &s.Title, &s.Content, &s.Created_at, &s.Expires_at)
+		err = rows.Scan(&s.ID, &s.Title, &s.Created_at, &s.Expires_at)
 		if err != nil {
 			return nil, err
 		}

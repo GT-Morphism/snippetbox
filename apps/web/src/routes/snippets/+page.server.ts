@@ -1,6 +1,13 @@
 import type { PageServerLoad } from "./$types";
 import { error } from "@sveltejs/kit";
 
+interface Snippet {
+	id: number;
+	title: string;
+	created_at: string;
+	expires_at: string;
+}
+
 export const load: PageServerLoad = async ({ fetch }) => {
 	const response = await fetch("http://localhost:4000/snippets");
 
@@ -8,9 +15,9 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		error(response.status, response.statusText);
 	}
 
-	const text = await response.text();
+	const { snippets } = (await response.json()) as { snippets: Snippet[] };
 
 	return {
-		text,
+		snippets,
 	};
 };

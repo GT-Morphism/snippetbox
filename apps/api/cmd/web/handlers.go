@@ -21,8 +21,10 @@ func (app *application) handleGetSnippets(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	for _, snippet := range snippets {
-		fmt.Fprintf(w, "%+v\n", snippet)
+	err = app.writeJSON(w, http.StatusOK, envelope{"snippets": snippets}, nil)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
 	}
 }
 
