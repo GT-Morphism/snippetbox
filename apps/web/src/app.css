@@ -2,7 +2,7 @@
 
 @utility wrapper {
 	--_maxWidth: 1280px;
-	width: min(var(--_maxWidth), 100% - 2rem);
+	inline-size: min(var(--_maxWidth), 100% - 2rem);
 	margin-inline: auto;
 
 	&[data-max-width="narrow"] {
