@@ -1,1 +1,2 @@
+# reference: https://stackoverflow.com/questions/40659265/using-gitattributes-for-linguist-examples
 apps/** linguist-vendored=false
