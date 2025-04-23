@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		error(response.status, response.statusText);
 	}
 
-	const { snippets } = (await response.json()) as { snippets: Snippet[] };
+	const snippets = (await response.json()) as Snippet[];
 
 	return {
 		snippets,

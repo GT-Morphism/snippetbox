@@ -1,66 +1,79 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"net/http"
-	"strconv"
 
+	"github.com/danielgtaylor/huma/v2"
 	"snippetbox.gentiluomo.dev/internal/models"
 )
 
-func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Server", "Go")
-	w.Write([]byte("Hello from Snippetbox"))
+type HandleGetSnippetsOutput struct {
+	Body []models.Snippet
 }
 
-func (app *application) handleGetSnippets(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleGetSnippets(ctx context.Context, input *struct{}) (*HandleGetSnippetsOutput, error) {
+	resp := &HandleGetSnippetsOutput{}
 	snippets, err := app.snippets.Latest()
 	if err != nil {
-		app.serverError(w, r, err)
-		return
+		resp.Body = []models.Snippet{}
+		app.logger.Error("Something went wrong trying to fetch snippets", "error", err)
+		return resp, huma.Error500InternalServerError("The fault is ours, brother.")
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"snippets": snippets}, nil)
-	if err != nil {
-		app.serverError(w, r, err)
-		return
-	}
+	resp.Body = snippets
+
+	return resp, nil
 }
 
-func (app *application) handleGetSnippetById(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
+type HandleGetSnippetByIdOutput struct {
+	Body models.Snippet
+}
 
-	if err != nil || id < 1 {
-		app.logger.Error(err.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Brother, I need a proper integer id; also positive, brother."))
-		return
-	}
+func (app *application) handleGetSnippetById(ctx context.Context, input *struct {
+	ID int `path:"id" minimum:"1" doc:"id of snippet to show"`
+},
+) (*HandleGetSnippetByIdOutput, error) {
+	resp := &HandleGetSnippetByIdOutput{}
 
-	snippet, err := app.snippets.Get(id)
+	snippet, err := app.snippets.Get(input.ID)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
-			http.NotFound(w, r)
+			return nil, huma.Error404NotFound("Brother, no sinppet for your id")
 		} else {
-			app.serverError(w, r, err)
+			app.logger.Error("Something went wrong trying to fetch snippet by id", "id", input.ID, "error", err)
+			return resp, huma.Error500InternalServerError("The fault is ours, brother.")
 		}
-		return
 	}
 
-	fmt.Fprintf(w, "Here you desired snippet with ID %d, brother: %+v", id, snippet)
+	resp.Body = snippet
+
+	return resp, nil
 }
 
-func (app *application) handlePostSnippets(w http.ResponseWriter, r *http.Request) {
-	title := "O snail"
-	content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n– Kobayashi Issa"
-	expires_at := 7
+type HandlePostSnippetsInput struct {
+	Body struct {
+		Title      string `json:"title" doc:"Title of snippet"`
+		Content    string `json:"content" doc:"Content of snippet"`
+		Expires_at int    `json:"expires_at" doc:"Number of days until the snippet expires" minimum:"0" maximum:"30"`
+	}
+}
 
-	id, err := app.snippets.Insert(title, content, expires_at)
+type HandlePostSnippetsResponse struct {
+	Url string `header:"Location" doc:"The URL of the newly created snippet to which the user will be redirected to"`
+}
+
+func (app *application) handlePostSnippets(ctx context.Context, input *HandlePostSnippetsInput) (*HandlePostSnippetsResponse, error) {
+	resp := &HandlePostSnippetsResponse{}
+
+	id, err := app.snippets.Insert(input.Body.Title, input.Body.Content, input.Body.Expires_at)
 	if err != nil {
-		app.serverError(w, r, err)
-		return
+		app.logger.Error("Something went wrong trying to create a new snippet", "input", input, "error", err)
+		return nil, huma.Error500InternalServerError("The fault is ours, brother.")
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/snippets/%d", id), http.StatusSeeOther)
+	resp.Url = fmt.Sprintf("/snippets/%d", id)
+
+	return resp, nil
 }

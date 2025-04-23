@@ -2,7 +2,10 @@ module snippetbox.gentiluomo.dev
 
 go 1.24.2
 
-require github.com/jackc/pgx/v5 v5.7.4
+require (
+	github.com/danielgtaylor/huma/v2 v2.32.0
+	github.com/jackc/pgx/v5 v5.7.4
+)
 
 require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
