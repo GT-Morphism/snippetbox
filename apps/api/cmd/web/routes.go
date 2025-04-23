@@ -16,7 +16,23 @@ type GreetingOutput struct {
 func (app *application) routes() *http.ServeMux {
 	mux := http.NewServeMux()
 
-	api := humago.New(mux, huma.DefaultConfig("Snippetbox API", "0.0.0"))
+	apiConfig := huma.DefaultConfig("Snippetbox API", "0.0.0")
+	apiConfig.Info.Contact = &huma.Contact{
+		Name:  "Giuseppe",
+		Email: "don@example.com",
+	}
+	apiConfig.Info.License = &huma.License{
+		Name:       "MIT License",
+		Identifier: "MIT",
+		URL:        "https://mit-license.org/",
+	}
+	apiConfig.Info.Description = `## Purpose
+The documentation has two goals:
+- Let new developers quickly get a high-level overview of the project's services
+- Let developers be forced to provide proper documentation
+`
+
+	api := humago.New(mux, apiConfig)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "get-snippets",
