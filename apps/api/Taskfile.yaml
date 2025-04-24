@@ -12,7 +12,6 @@ vars:
 tasks:
   dev:
     desc: "Runs Go backend with live reload using air"
-    deps: [db:start]
     cmd: air .
 
   sops:encrypt:
