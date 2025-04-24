@@ -4,7 +4,25 @@ version: "3"
 
 output: prefixed
 
+vars:
+  LIB_DIR: ./src/lib
+
 tasks:
   dev:
+    deps:
+      - task: dev:server
+        vars:
+          API_BASE_URL: "http://localhost:4000"
+      - task: gen:spec
+        vars:
+          API_BASE_URL: "http://localhost:4000"
+
+  dev:server:
     desc: "Runs dev server for SvelteKit frontend"
-    cmd: pnpm dev
+    cmd: PUBLIC_API_BASE_URL={{.API_BASE_URL}} pnpm dev
+
+  gen:spec:
+    desc: "Generates types from openapi spec"
+    cmd: API_BASE_URL={{.API_BASE_URL}} pnpm gen:spec
+    generates:
+      - "{{.LIB_DIR}}/api/schema.d.ts"

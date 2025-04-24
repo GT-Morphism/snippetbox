@@ -1,3 +1,4 @@
 node_modules/
 .svelte-kit/
 src/lib/api/schema.d.ts
+.env

@@ -12,7 +12,7 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
-		"gen:spec": "pnpm dlx openapi-typescript http://localhost:4000/openapi.yaml -o ./src/lib/api/schema.d.ts",
+		"gen:spec": "pnpm dlx openapi-typescript $API_BASE_URL/openapi.yaml -o ./src/lib/api/schema.d.ts",
 		"up:deps": "pnpm update -i --latest",
 		"preinstall": "npx only-allow pnpm"
 	},
