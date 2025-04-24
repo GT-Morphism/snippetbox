@@ -8,7 +8,7 @@
 
 <div class="grid gap-y-2">
 	{#each data.snippets as snippet (snippet.id)}
-		<article class="bg-blue-300">
+		<article class="rounded-md border border-blue-300 px-2 py-4">
 			<header>
 				<h2>{snippet.title}</h2>
 			</header>
