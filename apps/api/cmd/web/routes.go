@@ -33,7 +33,7 @@ The documentation has two goals:
 `
 
 	api := humago.New(mux, apiConfig)
-	api.UseMiddleware(commonHeaders, app.logRequest)
+	api.UseMiddleware(commonHeaders, app.logRequest, recoverPanic(api))
 
 	huma.Register(api, huma.Operation{
 		OperationID: "get-snippets",

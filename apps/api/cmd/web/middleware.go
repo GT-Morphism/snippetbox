@@ -1,6 +1,11 @@
 package main
 
-import "github.com/danielgtaylor/huma/v2"
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/danielgtaylor/huma/v2"
+)
 
 func commonHeaders(ctx huma.Context, next func(huma.Context)) {
 	ctx.SetHeader("Server", "Go")
@@ -21,4 +26,18 @@ func (app *application) logRequest(ctx huma.Context, next func(huma.Context)) {
 	app.logger.Info("received request", "ip", ip, "proto", proto, "method", method, "uri", uri)
 
 	next(ctx)
+}
+
+func recoverPanic(api huma.API) func(ctx huma.Context, next func(huma.Context)) {
+	return func(ctx huma.Context, next func(huma.Context)) {
+		defer func() {
+			if err := recover(); err != nil {
+				ctx.SetHeader("Connection", "close")
+
+				huma.WriteErr(api, ctx, http.StatusInternalServerError, "Brother, something happend on our site", fmt.Errorf("%s", err))
+			}
+		}()
+
+		next(ctx)
+	}
 }
