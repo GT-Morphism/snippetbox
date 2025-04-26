@@ -56,7 +56,7 @@ type HandlePostSnippetsInput struct {
 	Body struct {
 		Title      string `json:"title" doc:"Title of snippet"`
 		Content    string `json:"content" doc:"Content of snippet"`
-		Expires_at int    `json:"expires_at" doc:"Number of days until the snippet expires" minimum:"0" maximum:"30"`
+		Expires_at int    `json:"expires_at" doc:"Number of days until the snippet expires" minimum:"1" maximum:"365"`
 	}
 }
 
