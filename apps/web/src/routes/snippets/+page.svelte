@@ -6,7 +6,7 @@
 
 <h1>LIST OF ALL SNIPPETS</h1>
 
-<ul class="grid gap-y-2">
+<ul class="mb-8 grid gap-y-2">
 	{#each data.snippets as snippet (snippet.id)}
 		<li>
 			<article class="rounded-md border border-blue-300 px-2 py-4">
@@ -29,3 +29,5 @@
 		</li>
 	{/each}
 </ul>
+
+<a class="inline-block bg-blue-500/25 px-1 py-2" href="/snippets/create">Create new snippet</a>

@@ -51,7 +51,7 @@ The documentation has two goals:
 		Summary:       "Create new snippet",
 		Description:   "This endpoint allows for the creation of a new snippet",
 		Tags:          []string{"Snippets"},
-		DefaultStatus: http.StatusSeeOther,
+		DefaultStatus: http.StatusCreated,
 	}, app.handlePostSnippets)
 
 	huma.Register(api, huma.Operation{
