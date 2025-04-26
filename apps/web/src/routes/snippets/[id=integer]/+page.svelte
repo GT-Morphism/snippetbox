@@ -7,12 +7,18 @@
 	let { data }: PageProps = $props();
 </script>
 
-<a href="/snippets">Back to Snippets overview</a>
+<a
+	class="underline decoration-blue-300 decoration-dashed decoration-2 hover:decoration-solid focus-visible:decoration-solid"
+	href="/snippets">Back to Snippets overview</a
+>
 
-<h1>SNIPPET {id}</h1>
-<aside>
+<h1 class="mb-4 text-2xl/tight">{data.snippet.title} (ID = {id})</h1>
+
+<aside class="mb-8 text-sm">
 	<time>Created at: {data.snippet.created_at}</time>
 	<time>Expires at: {data.snippet.expires_at}</time>
 </aside>
-<h2>{data.snippet.title}</h2>
-<p>{data.snippet.content}</p>
+
+<pre
+	class="relative ps-4 before:absolute before:top-0 before:bottom-0 before:left-0 before:w-1 before:bg-blue-300 before:content-['']">{data
+		.snippet.content}</pre>

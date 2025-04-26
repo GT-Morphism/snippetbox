@@ -6,21 +6,26 @@
 
 <h1>LIST OF ALL SNIPPETS</h1>
 
-<div class="grid gap-y-2">
+<ul class="grid gap-y-2">
 	{#each data.snippets as snippet (snippet.id)}
-		<article class="rounded-md border border-blue-300 px-2 py-4">
-			<header>
-				<h2>{snippet.title}</h2>
-			</header>
+		<li>
+			<article class="rounded-md border border-blue-300 px-2 py-4">
+				<header>
+					<h2 class="text-xl/tight">{snippet.title}</h2>
+				</header>
 
-			<footer class="grid">
-				<a href={`/snippets/${snippet.id}`}>To the snippet</a>
-				<aside>
-					<span>{snippet.id}</span>
-					<time>{snippet.created_at}</time>
-					<time>{snippet.expires_at}</time>
-				</aside>
-			</footer>
-		</article>
+				<footer class="grid">
+					<a
+						class="underline decoration-blue-300 decoration-dashed decoration-2 hover:decoration-solid focus-visible:decoration-solid"
+						href={`/snippets/${snippet.id}`}>To the snippet</a
+					>
+					<aside class="text-sm">
+						<span>{snippet.id}</span>
+						<time>{snippet.created_at}</time>
+						<time>{snippet.expires_at}</time>
+					</aside>
+				</footer>
+			</article>
+		</li>
 	{/each}
-</div>
+</ul>
