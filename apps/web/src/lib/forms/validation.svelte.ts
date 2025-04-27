@@ -18,7 +18,7 @@ const SnippetSchema = v.object({
 });
 
 type SnippetData = v.InferOutput<typeof SnippetSchema>;
-type SnippetErrors = v.FlatErrors<typeof SnippetSchema>["nested"];
+export type IndexableSnippetErrors = Partial<Record<keyof SnippetData, [string, ...string[]]>>;
 
 type SafeParseSuccess = {
 	success: true;
@@ -30,7 +30,7 @@ type SafeParseSuccess = {
 type SafeParseError = {
 	success: false;
 	message: string;
-	errors: SnippetErrors;
+	errors: IndexableSnippetErrors;
 	data: Record<string, never>;
 };
 
@@ -55,3 +55,33 @@ export function safeParse(data: Record<string, FormDataEntryValue>): SafeParseRe
 		data: safeParsedData.output,
 	} as SafeParseSuccess;
 }
+
+class SnippetForm {
+	snippetData = $state<SnippetData>({
+		title: "",
+		content: "",
+		expires_at: "365",
+	});
+
+	errors = $state<IndexableSnippetErrors>({});
+	updateErrors = (errors: IndexableSnippetErrors) => {
+		const entries = Object.entries(errors) as Array<[keyof SnippetData, [string, ...string[]]]>;
+		for (const [key, value] of entries) {
+			this.errors[key] = value;
+		}
+	};
+
+	validateField = (field: keyof SnippetData) => {
+		const fieldSchema = v.pick(SnippetSchema, [field]);
+		const parsedField = v.safeParse(fieldSchema, { [field]: this.snippetData[field] });
+
+		if (!parsedField.success) {
+			const flattenErrors = v.flatten<typeof fieldSchema>(parsedField.issues).nested;
+			this.errors[field] = flattenErrors?.[field];
+		} else {
+			this.errors[field] = undefined;
+		}
+	};
+}
+
+export const snippetForm = () => new SnippetForm();

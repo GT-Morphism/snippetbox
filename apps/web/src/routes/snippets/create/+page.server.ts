@@ -1,6 +1,6 @@
 import { fail, redirect } from "@sveltejs/kit";
 import type { Actions } from "./$types";
-import { safeParse } from "$lib/forms/validation";
+import { safeParse } from "$lib/forms/validation.svelte";
 import client from "$lib/api";
 
 export const actions = {
