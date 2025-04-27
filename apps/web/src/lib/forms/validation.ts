@@ -17,25 +17,26 @@ const SnippetSchema = v.object({
 	),
 });
 
-type FormDataFromEntries = Record<string, FormDataEntryValue>;
+type SnippetData = v.InferOutput<typeof SnippetSchema>;
+type SnippetErrors = v.FlatErrors<typeof SnippetSchema>["nested"];
 
 type SafeParseSuccess = {
 	success: true;
 	message: string;
 	errors: Record<string, never>;
-	data: v.InferOutput<typeof SnippetSchema>;
+	data: SnippetData;
 };
 
 type SafeParseError = {
 	success: false;
 	message: string;
-	errors: v.FlatErrors<typeof SnippetSchema>["nested"];
+	errors: SnippetErrors;
 	data: Record<string, never>;
 };
 
 type SafeParseResult = SafeParseSuccess | SafeParseError;
 
-export function safeParse(data: FormDataFromEntries): SafeParseResult {
+export function safeParse(data: Record<string, FormDataEntryValue>): SafeParseResult {
 	const safeParsedData = v.safeParse(SnippetSchema, data);
 
 	if (!safeParsedData.success) {
