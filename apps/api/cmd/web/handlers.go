@@ -54,7 +54,7 @@ func (app *application) handleGetSnippetById(ctx context.Context, input *struct 
 
 type HandlePostSnippetsInput struct {
 	Body struct {
-		Title      string `json:"title" doc:"Title of snippet"`
+		Title      string `json:"title" doc:"Title of snippet" maxLength:"100"`
 		Content    string `json:"content" doc:"Content of snippet"`
 		Expires_at int    `json:"expires_at" doc:"Number of days until the snippet expires" minimum:"1" maximum:"365"`
 	}
