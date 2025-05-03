@@ -83,10 +83,29 @@ tasks:
     preconditions:
       - "docker logs {{.DB_CONTAINER_NAME}} || exit 1"
 
-  db:clean:
-    desc: Stops and removes postgres container; cleans unused volumes
+  cache:start:
+    desc: Starts redis container
     cmds:
-      - "docker container stop {{.DB_CONTAINER_NAME}} | xargs docker container rm"
+      - docker compose up -d cache
+
+  cache:logs:
+    desc: Shows log of running redis container
+    cmd: docker logs {{.CACHE_CONTAINER_NAME}} -f
+    preconditions:
+      - "docker logs {{.CACHE_CONTAINER_NAME}} || exit 1"
+
+  logs:
+    desc: Logs all docker services
+    deps: [db:logs, cache:logs]
+
+  docker:
+    desc: Starts all docker services
+    deps: [db:start, cache:start]
+
+  clean:
+    desc: Stops and removes postgres and redis container; cleans unused volumes
+    cmds:
+      - "docker container stop {{.DB_CONTAINER_NAME}} {{.CACHE_CONTAINER_NAME}} | xargs docker container rm"
       - "docker volume prune -f"
     preconditions:
       - "docker logs {{.DB_CONTAINER_NAME}} || exit 1"

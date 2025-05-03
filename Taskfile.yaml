@@ -13,8 +13,10 @@ includes:
 output: prefixed
 
 vars:
-  # same name as container name of service `db` in `compose.yaml`
+  # same name as container name of service `db` in `apps/api/compose.yaml`
   DB_CONTAINER_NAME: postgres
+  # same name as container name of service `cache` in `apps/api/compose.yaml`
+  CACHE_CONTAINER_NAME: redis
 
 tasks:
   default:
@@ -22,12 +24,12 @@ tasks:
 
   dev:services:
     internal: true
-    deps: [api:dev, api:db:logs, web:dev]
+    deps: [api:dev, api:logs, web:dev]
 
   dev:
     desc: "Starts all services for local development"
     cmds:
-      - task: api:db:start
+      - task: api:docker
       - |
         echo "Waiting for database to be ready..."
         # inspired by https://stackoverflow.com/questions/46516584/docker-check-if-postgres-is-ready

@@ -32,6 +32,13 @@ services:
       timeout: 5s
       retries: 5
 
+  cache:
+    image: redis
+    container_name: redis
+    restart: always
+    ports:
+      - 6379:6379
+
 secrets:
   db-name:
     file: secrets/db_name.txt

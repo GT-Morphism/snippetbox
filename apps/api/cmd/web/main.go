@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 	"snippetbox.gentiluomo.dev/internal/models"
 )
 
@@ -47,9 +48,37 @@ func main() {
 	}
 
 	logger.Info("connection pool established")
-	logger.Info("starting server", "addr", *addr)
-
 	fmt.Println(greeting)
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     ":6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	err = rdb.Set(context.Background(), "key", "value", 0).Err()
+	if err != nil {
+		panic(err)
+	}
+
+	val, err := rdb.Get(context.Background(), "key").Result()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("key", val)
+
+	val2, err := rdb.Get(context.Background(), "key2").Result()
+	if err == redis.Nil {
+		fmt.Println("key2 does not exist")
+	} else if err != nil {
+		panic(err)
+	} else {
+		fmt.Println("key2", val2)
+	}
+
+	logger.Info("connection to redis established")
+
+	logger.Info("starting server", "addr", *addr)
 
 	err = http.ListenAndServe(*addr, app.routes())
 	logger.Error(err.Error())
