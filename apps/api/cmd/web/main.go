@@ -63,9 +63,14 @@ func main() {
 		cache:    redisClient,
 	}
 
+	srv := &http.Server{
+		Addr:    *addr,
+		Handler: app.routes(),
+	}
+
 	logger.Info("starting server", "addr", *addr)
 
-	err = http.ListenAndServe(*addr, app.routes())
+	err = srv.ListenAndServe()
 	logger.Error(err.Error())
 	os.Exit(1)
 }
