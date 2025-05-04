@@ -4,8 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"time"
 
 	"github.com/danielgtaylor/huma/v2"
+	"github.com/redis/go-redis/v9"
 	"snippetbox.gentiluomo.dev/internal/models"
 )
 
@@ -28,7 +31,8 @@ func (app *application) handleGetSnippets(ctx context.Context, input *struct{}) 
 }
 
 type HandleGetSnippetByIdOutput struct {
-	Body models.Snippet
+	Body             models.Snippet
+	ShowCreatedToast http.Cookie `header:"Set-Cookie"`
 }
 
 func (app *application) handleGetSnippetById(ctx context.Context, input *struct {
@@ -44,6 +48,24 @@ func (app *application) handleGetSnippetById(ctx context.Context, input *struct 
 		} else {
 			app.logger.Error("Something went wrong trying to fetch snippet by id", "id", input.ID, "error", err)
 			return resp, huma.Error500InternalServerError("The fault is ours, brother.")
+		}
+	}
+
+	_, err = app.cache.Get(ctx, "show-snippet-created-toast").Result()
+
+	if err == redis.Nil {
+		app.logger.Info("No key `show-snippet-created-toast` found")
+	} else if err != nil {
+		app.logger.Error("Something went wrong trying to get value for key `show-snippet-created-toast`", "error", err)
+	} else {
+		app.cache.Del(ctx, "show-snippet-created-toast")
+		resp.ShowCreatedToast = http.Cookie{
+			Name:     "show-created-toast",
+			Value:    "true",
+			Path:     "/",
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteLaxMode,
 		}
 	}
 
@@ -71,6 +93,11 @@ func (app *application) handlePostSnippets(ctx context.Context, input *HandlePos
 	if err != nil {
 		app.logger.Error("Something went wrong trying to create a new snippet", "input", input, "error", err)
 		return nil, huma.Error500InternalServerError("The fault is ours, brother.")
+	}
+
+	err = app.cache.Set(ctx, "show-snippet-created-toast", "true", 5*time.Minute).Err()
+	if err != nil {
+		app.logger.Error("Something went wrong trying to store creation message for new snippet", "input", input, "error", err)
 	}
 
 	resp.Url = fmt.Sprintf("/snippets/%d", id)

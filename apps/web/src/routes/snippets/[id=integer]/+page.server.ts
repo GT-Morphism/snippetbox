@@ -20,7 +20,13 @@ export const load: PageServerLoad = async ({ fetch, params }) => {
 		error(404, `Brother, for id ${params.id} no snippet.`);
 	}
 
+	const showToast =
+		response.headers
+			.getSetCookie()
+			.filter((cookieString) => cookieString.includes("show-created-toast")).length > 0;
+
 	return {
 		snippet: data,
+		showToast,
 	};
 };

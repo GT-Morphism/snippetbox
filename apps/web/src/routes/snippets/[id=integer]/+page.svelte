@@ -1,10 +1,23 @@
 <script lang="ts">
 	import { page } from "$app/state";
+	import { onMount } from "svelte";
 	import type { PageProps } from "./$types";
+	import { addToast } from "$lib/components/Toaster.svelte";
 
 	const id = page.params.id;
 
 	let { data }: PageProps = $props();
+
+	onMount(() => {
+		if (data.showToast) {
+			addToast({
+				data: {
+					title: "Amazing job",
+					description: "Here is your fresh snippet",
+				},
+			});
+		}
+	});
 </script>
 
 <a
