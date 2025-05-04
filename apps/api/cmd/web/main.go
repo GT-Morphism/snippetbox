@@ -36,6 +36,14 @@ func main() {
 	}
 	defer dbPool.Close()
 
+	var greeting string
+	err = dbPool.QueryRow(context.Background(), "SELECT 'Hello, Sir.'").Scan(&greeting)
+	if err != nil {
+		logger.Error("QueryRow failed", "err", err)
+		os.Exit(1)
+	}
+	logger.Info("connection pool established")
+
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     ":6379",
 		Password: "", // no password set
@@ -54,16 +62,6 @@ func main() {
 		snippets: &models.SnippetModel{DB: dbPool},
 		cache:    redisClient,
 	}
-
-	var greeting string
-	err = dbPool.QueryRow(context.Background(), "SELECT 'Hello, Sir.'").Scan(&greeting)
-	if err != nil {
-		logger.Error("QueryRow failed", "err", err)
-		os.Exit(1)
-	}
-
-	logger.Info("connection pool established")
-	fmt.Println(greeting)
 
 	logger.Info("starting server", "addr", *addr)
 
