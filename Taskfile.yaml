@@ -24,7 +24,7 @@ tasks:
 
   dev:services:
     internal: true
-    deps: [api:dev, api:logs, web:dev]
+    deps: [caddy, api:dev, api:logs, web:dev]
 
   dev:
     desc: "Starts all services for local development"
@@ -35,3 +35,27 @@ tasks:
         # inspired by https://stackoverflow.com/questions/46516584/docker-check-if-postgres-is-ready
         until docker exec {{.DB_CONTAINER_NAME}} pg_isready -t 90; do echo "Database not ready yet, waiting..."; sleep 2; done
       - task: dev:services
+
+  copy-tls-file:
+    internal: true
+    cmds:
+      - cp "./openssl/{{.PEM_FILE}}" apps/{{.SERVICE}}/tls/
+    status:
+      - ! test -f apps/{{.SERVICE}}/tls/{{.PEM_FILE}}
+
+  copy-tls-files:
+    internal: true
+    deps:
+      - task: copy-tls-file
+        vars: { PEM_FILE: "certs-chain.pem", SERVICE: "api" }
+      - task: copy-tls-file
+        vars: { PEM_FILE: "key.pem", SERVICE: "api" }
+      - task: copy-tls-file
+        vars: { PEM_FILE: "certs-chain.pem", SERVICE: "web" }
+      - task: copy-tls-file
+        vars: { PEM_FILE: "key.pem", SERVICE: "web" }
+
+  caddy:
+    desc: "Starts caddy for reverse proxy"
+    deps: [copy-tls-files]
+    cmd: caddy run

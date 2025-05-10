@@ -1,0 +1,29 @@
+snippetbox.localhost {
+	tls ./openssl/certs-chain.pem ./openssl/key.pem
+
+	# frontend routes
+	# reference: https://docs.docker.com/desktop/features/networking/#i-want-to-connect-from-a-container-to-a-service-on-the-host
+	handle /* {
+		reverse_proxy https://localhost:5173 {
+			transport http {
+				tls
+				tls_trust_pool file {
+					pem_file /etc/ssl/donca/certs/cacert.pem
+				}
+			}
+		}
+	}
+
+	# api routes
+	# reference: https://caddy.community/t/remove-path-prefix-on-reverse-proxy/14325
+	handle_path /api/* {
+		reverse_proxy https://localhost:4000 {
+			transport http {
+				tls
+				tls_trust_pool file {
+					pem_file /etc/ssl/donca/certs/cacert.pem
+				}
+			}
+		}
+	}
+}
