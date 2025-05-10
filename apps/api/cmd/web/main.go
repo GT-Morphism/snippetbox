@@ -17,8 +17,9 @@ import (
 
 type application struct {
 	logger   *slog.Logger
-	snippets *models.SnippetModel
 	cache    *redis.Client
+	db       *pgxpool.Pool
+	snippets *models.SnippetModel
 }
 
 func main() {
@@ -59,8 +60,9 @@ func main() {
 
 	app := &application{
 		logger:   logger,
-		snippets: &models.SnippetModel{DB: dbPool},
 		cache:    redisClient,
+		db:       dbPool,
+		snippets: &models.SnippetModel{DB: dbPool},
 	}
 
 	srv := &http.Server{

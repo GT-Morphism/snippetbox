@@ -36,6 +36,14 @@ The documentation has two goals:
 	api.UseMiddleware(commonHeaders, app.logRequest, recoverPanic(api))
 
 	huma.Register(api, huma.Operation{
+		OperationID: "get-api-health-status",
+		Method:      http.MethodGet,
+		Path:        "/health",
+		Summary:     "Show health status of API",
+		Description: "This endpoint allows the retrieval of the API's current health status",
+	}, app.handleGetApiHealthStatus)
+
+	huma.Register(api, huma.Operation{
 		OperationID: "get-snippets",
 		Method:      http.MethodGet,
 		Path:        "/snippets",

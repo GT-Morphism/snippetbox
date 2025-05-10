@@ -12,6 +12,45 @@ import (
 	"snippetbox.gentiluomo.dev/internal/models"
 )
 
+type HandleGetApiHealthStatusOutput struct {
+	Body struct {
+		Message     string `json:"message"`
+		DBStatus    string `json:"dbStatus"`
+		CacheStatus string `json:"cacheStatus"`
+	}
+}
+
+func (app *application) handleGetApiHealthStatus(ctx context.Context, input *struct{}) (*HandleGetApiHealthStatusOutput, error) {
+	resp := &HandleGetApiHealthStatusOutput{}
+
+	var greeting string
+	err := app.db.QueryRow(ctx, "SELECT 'Hello, Sir.'").Scan(&greeting)
+	if err != nil {
+		app.logger.Error("QueryRow failed", "err", err)
+		resp.Body.Message = "There is a problem with the database"
+		resp.Body.DBStatus = "inactive"
+		resp.Body.CacheStatus = "unchecked"
+
+		return resp, huma.Error503ServiceUnavailable("The fault is ours, brother")
+	}
+
+	err = app.cache.Ping(ctx).Err()
+	if err != nil {
+		app.logger.Error("Unable to connect to redis", "err", err)
+		resp.Body.Message = "There is a problem with the cache"
+		resp.Body.DBStatus = "active"
+		resp.Body.CacheStatus = "inactive"
+
+		return resp, huma.Error503ServiceUnavailable("The fault is ours, brother")
+	}
+
+	resp.Body.Message = "All services are up and running"
+	resp.Body.DBStatus = "active"
+	resp.Body.CacheStatus = "active"
+
+	return resp, nil
+}
+
 type HandleGetSnippetsOutput struct {
 	Body []models.Snippet
 }
