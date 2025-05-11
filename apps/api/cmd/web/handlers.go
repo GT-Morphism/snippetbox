@@ -143,3 +143,45 @@ func (app *application) handlePostSnippets(ctx context.Context, input *HandlePos
 
 	return resp, nil
 }
+
+type HandlePostUsersOutput struct {
+	Body struct {
+		Message string `json:"message"`
+	}
+}
+
+func (app *application) handlePostUsers(ctx context.Context, input *struct{}) (*HandlePostUsersOutput, error) {
+	resp := &HandlePostUsersOutput{}
+
+	resp.Body.Message = "Good job signing up"
+
+	return resp, nil
+}
+
+type HandleAuthLoginOutput struct {
+	Body struct {
+		Message string `json:"message"`
+	}
+}
+
+func (app *application) handleAuthLogin(ctx context.Context, input *struct{}) (*HandleAuthLoginOutput, error) {
+	resp := &HandleAuthLoginOutput{}
+
+	resp.Body.Message = "Good job logging in"
+
+	return resp, nil
+}
+
+type HandleAuthLogoutOutput struct {
+	Body struct {
+		Message string `json:"message"`
+	}
+}
+
+func (app *application) handleAuthLogout(ctx context.Context, input *struct{}) (*HandleAuthLogoutOutput, error) {
+	resp := &HandleAuthLogoutOutput{}
+
+	resp.Body.Message = "Good job logging out"
+
+	return resp, nil
+}

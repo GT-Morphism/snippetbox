@@ -71,5 +71,32 @@ The documentation has two goals:
 		Tags:        []string{"Snippets"},
 	}, app.handleGetSnippetById)
 
+	huma.Register(api, huma.Operation{
+		OperationID: "post-users",
+		Method:      http.MethodPost,
+		Path:        "/users",
+		Summary:     "Create new user",
+		Description: "This endpoint allows to sign up new users",
+		Tags:        []string{"Users"},
+	}, app.handlePostUsers)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "auth-login",
+		Method:      http.MethodPost,
+		Path:        "/auth/login",
+		Summary:     "Authenticate and login the user",
+		Description: "This endpoint allows registered users to login",
+		Tags:        []string{"Authentication"},
+	}, app.handleAuthLogin)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "auth-logout",
+		Method:      http.MethodPost,
+		Path:        "/auth/logout",
+		Summary:     "Logout the user",
+		Description: "This endpoint allows authenticated users to log out",
+		Tags:        []string{"Authentication"},
+	}, app.handleAuthLogout)
+
 	return mux
 }
