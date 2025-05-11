@@ -30,6 +30,14 @@ INSERT INTO snippets (title, content, expires_at) VALUES (
   CURRENT_TIMESTAMP + INTERVAL '7 day'
 );
 
+CREATE TABLE users (
+  id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  hashed_password CHAR(60) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 \set app_user `cat $APP_USER`
 \set app_password `cat $APP_PASSWORD`
 

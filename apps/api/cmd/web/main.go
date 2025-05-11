@@ -22,6 +22,7 @@ type application struct {
 	cache    *redis.Client
 	db       *pgxpool.Pool
 	snippets *models.SnippetModel
+	users    *models.UserModel
 }
 
 func main() {
@@ -65,6 +66,7 @@ func main() {
 		cache:    redisClient,
 		db:       dbPool,
 		snippets: &models.SnippetModel{DB: dbPool},
+		users:    &models.UserModel{DB: dbPool},
 	}
 
 	tlsConfig := &tls.Config{
