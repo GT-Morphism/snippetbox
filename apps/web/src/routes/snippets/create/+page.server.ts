@@ -19,7 +19,7 @@ export const actions = {
 		const { response, error } = await client.POST("/snippets", {
 			body: {
 				...data,
-				expires_at: parseInt(data.expires_at),
+				expires_at: parseInt(data.expires_at) as 1 | 7 | 365,
 			},
 		});
 
