@@ -1,51 +1,37 @@
 import * as v from "valibot";
 
-const SnippetSchema = v.object({
-	title: v.pipe(
-		v.string(),
-		v.nonEmpty("Title is required"),
-		v.maxLength(100, "Brother, too long; not more than 100"),
-	),
-	content: v.pipe(
-		v.string(),
-		v.nonEmpty("Content is required"),
-		v.minLength(2, "Brother, too short; at least 2"),
-	),
-	expires_at: v.picklist(
-		["1", "7", "365"],
-		"Brother, only one of the following is allowed: '1', '7' or '365'",
-	),
-});
+export type IndexableErrors<TData> = Partial<Record<keyof TData, [string, ...string[]]>>;
 
-type SnippetData = v.InferOutput<typeof SnippetSchema>;
-export type IndexableSnippetErrors = Partial<Record<keyof SnippetData, [string, ...string[]]>>;
-
-type SafeParseSuccess = {
+type SafeParseSuccess<TData> = {
 	success: true;
 	message: string;
 	errors: Record<string, never>;
-	data: SnippetData;
+	data: TData;
 };
 
-type SafeParseError = {
+type SafeParseError<TData> = {
 	success: false;
 	message: string;
-	errors: IndexableSnippetErrors;
+	errors: IndexableErrors<TData>;
 	data: Record<string, never>;
 };
 
-type SafeParseResult = SafeParseSuccess | SafeParseError;
+type SafeParseResult<TData> = SafeParseSuccess<TData> | SafeParseError<TData>;
 
-export function safeParse(data: Record<string, FormDataEntryValue>): SafeParseResult {
-	const safeParsedData = v.safeParse(SnippetSchema, data);
+export function safeParse<TSchema extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>>(
+	schema: TSchema,
+	data: Record<string, FormDataEntryValue>,
+): SafeParseResult<v.InferOutput<TSchema>> {
+	type TData = v.InferOutput<TSchema>;
+	const safeParsedData = v.safeParse(schema, data);
 
 	if (!safeParsedData.success) {
 		return {
 			success: false,
 			message: "Validation error",
-			errors: v.flatten<typeof SnippetSchema>(safeParsedData.issues).nested,
+			errors: v.flatten<TSchema>(safeParsedData.issues).nested,
 			data: {},
-		} as SafeParseError;
+		} as SafeParseError<TData>;
 	}
 
 	return {
@@ -53,35 +39,40 @@ export function safeParse(data: Record<string, FormDataEntryValue>): SafeParseRe
 		message: "Validation success",
 		errors: {},
 		data: safeParsedData.output,
-	} as SafeParseSuccess;
+	} as SafeParseSuccess<TData>;
 }
 
-class SnippetForm {
-	snippetData = $state<SnippetData>({
-		title: "",
-		content: "",
-		expires_at: "365",
-	});
+export class FormValidator<
+	TSchema extends v.ObjectSchema<v.ObjectEntries, v.ErrorMessage<v.ObjectIssue> | undefined>,
+> {
+	formData = $state<v.InferOutput<TSchema>>({});
+	errors = $state<IndexableErrors<v.InferOutput<TSchema>>>({});
+	schema: TSchema;
 
-	errors = $state<IndexableSnippetErrors>({});
-	updateErrors = (errors: IndexableSnippetErrors) => {
-		const entries = Object.entries(errors) as Array<[keyof SnippetData, [string, ...string[]]]>;
+	constructor(schema: TSchema, initialData: Partial<v.InferOutput<TSchema>> = {}) {
+		this.schema = schema;
+		this.formData = { ...initialData };
+	}
+
+	updateErrors = (errors: IndexableErrors<v.InferOutput<TSchema>>) => {
+		const entries = Object.entries(errors) as Array<
+			[keyof v.InferOutput<TSchema>, [string, ...string[]]]
+		>;
 		for (const [key, value] of entries) {
 			this.errors[key] = value;
 		}
 	};
 
-	validateField = (field: keyof SnippetData) => {
-		const fieldSchema = v.pick(SnippetSchema, [field]);
-		const parsedField = v.safeParse(fieldSchema, { [field]: this.snippetData[field] });
+	validateField = (field: keyof v.InferOutput<TSchema>) => {
+		const fieldSchema = v.pick(this.schema, [field]);
+		const parsedField = v.safeParse(fieldSchema, { [field]: this.formData[field] });
 
 		if (!parsedField.success) {
-			const flattenErrors = v.flatten<typeof fieldSchema>(parsedField.issues).nested;
+			const flattenErrors = v.flatten<typeof fieldSchema>(parsedField.issues)
+				.nested as IndexableErrors<v.InferOutput<TSchema>>;
 			this.errors[field] = flattenErrors?.[field];
 		} else {
 			this.errors[field] = undefined;
 		}
 	};
 }
-
-export const snippetForm = () => new SnippetForm();

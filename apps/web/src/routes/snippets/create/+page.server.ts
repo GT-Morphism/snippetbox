@@ -1,13 +1,14 @@
 import { fail, redirect } from "@sveltejs/kit";
 import type { Actions } from "./$types";
 import { safeParse } from "$lib/forms/validation.svelte";
+import { SnippetSchema } from "$lib/forms/schemas/snippet";
 import client from "$lib/api";
 
 export const actions = {
 	default: async ({ request }) => {
 		const formData = Object.fromEntries(await request.formData());
 
-		const { message, success, errors, data } = safeParse(formData);
+		const { message, success, errors, data } = safeParse(SnippetSchema, formData);
 
 		if (!success) {
 			return fail(400, {

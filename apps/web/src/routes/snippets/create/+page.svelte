@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { PageProps } from "./$types";
 	import { enhance } from "$app/forms";
-	import { snippetForm, type IndexableSnippetErrors } from "$lib/forms/validation.svelte";
+	import { snippetForm, type IndexableSnippetErrors } from "$lib/forms/validation/snippet";
 
 	let { form }: PageProps = $props();
-	const { snippetData, errors, updateErrors, validateField } = snippetForm();
+	const { formData: snippetData, errors, updateErrors, validateField } = snippetForm();
 </script>
 
 <a
